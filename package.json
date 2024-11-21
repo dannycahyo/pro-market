@@ -1,5 +1,6 @@
 {
-  "name": "pro-market",
+  "name": "pro-market-api",
+  "description": "Pro Market API",
   "scripts": {
     "start": "bun run src/index.ts",
     "dev": "bun run --hot src/index.ts",
