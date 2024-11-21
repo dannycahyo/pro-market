@@ -26,8 +26,11 @@ export const cartController = (cartService: CartService) => {
     try {
       const { sub: userId } = c.get("jwtPayload");
       const body = await c.req.json();
-      const input = CreateCartItemSchema.parse({ ...body, userId });
-      const cartItem = await cartService.addItem(input);
+      const input = CreateCartItemSchema.parse(body);
+      const cartItem = await cartService.addItem(userId, {
+        productId: input.productId,
+        quantity: input.quantity,
+      });
       return c.json(cartItem, 201);
     } catch (error) {
       return sendError(c, error);
@@ -37,7 +40,8 @@ export const cartController = (cartService: CartService) => {
   router.delete("/items/:id", async (c) => {
     try {
       const id = c.req.param("id");
-      await cartService.removeItem(id);
+      const { sub: userId } = c.get("jwtPayload");
+      await cartService.removeItem(id, userId);
       return c.json({ message: "Item removed" });
     } catch (error) {
       return sendError(c, error);
@@ -47,11 +51,13 @@ export const cartController = (cartService: CartService) => {
   router.patch("/items/:id", async (c) => {
     try {
       const id = c.req.param("id");
+      const { sub: userId } = c.get("jwtPayload");
       const body = await c.req.json();
       const input = UpdateCartItemSchema.parse(body);
       const cartItem = await cartService.updateItemQuantity(
         id,
         input,
+        userId,
       );
       return c.json(cartItem);
     } catch (error) {
