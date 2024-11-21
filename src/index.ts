@@ -7,13 +7,16 @@ import { PrismaClient } from "@prisma/client";
 import { authController } from "./controllers/authController";
 import { userController } from "./controllers/userController";
 import { cartController } from "./controllers/cartController";
+import { productController } from "./controllers/productController";
 
 import { UserService } from "./services/userService";
 import { AuthService } from "./services/authService";
 import { CartService } from "./services/cartService";
+import { ProductService } from "./services/productService";
 
 import { UserRepository } from "./repositories/userRepository";
 import { CartRepository } from "./repositories/cartRepository";
+import { ProductRepository } from "./repositories/productRepository";
 
 import type { JwtVariables } from "hono/jwt";
 import type { JWTPayload } from "./schema/Auth";
@@ -27,10 +30,12 @@ const TOKEN_SECRET = process.env.TOKEN_SECRET || "supersecret";
 
 const userRepository = new UserRepository(prisma);
 const cartRepository = new CartRepository(prisma);
+const productRepository = new ProductRepository(prisma);
 
 const cartService = new CartService(cartRepository);
 const userService = new UserService(userRepository);
 const authService = new AuthService(userService, TOKEN_SECRET);
+const productService = new ProductService(productRepository);
 
 // Protected routes
 app.use("/auth/me", jwt({ secret: TOKEN_SECRET }));
@@ -44,5 +49,6 @@ app.get("/", (c) => {
 app.route("/auth", authController(authService));
 app.route("/users", userController(userService));
 app.route("/cart", cartController(cartService));
+app.route("/products", productController(productService));
 
 export default app;
