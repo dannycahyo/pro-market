@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { UserService } from "../services/userService";
 import { sendError } from "../utils/errorHandler";
+import { sendResponse } from "../utils/responseHandler";
 
 export const userController = (userService: UserService) => {
   const router = new Hono();
@@ -8,11 +9,14 @@ export const userController = (userService: UserService) => {
   router.get("/", async (c) => {
     try {
       const users = await userService.getAllUsers();
-      return c.json(
+
+      return sendResponse(
+        c,
         users.map((user) => ({
           name: user.name,
           email: user.email,
         })),
+        "Users retrieved successfully",
       );
     } catch (error) {
       return sendError(c, error);
@@ -23,8 +27,13 @@ export const userController = (userService: UserService) => {
     try {
       const id = c.req.param("id");
       const user = await userService.getUserById(id);
-      if (!user) return c.json({ error: "User not found" }, 404);
-      return c.json({ name: user.name, email: user.email });
+      if (!user) return sendResponse(c, null, "User not found", 404);
+
+      return sendResponse(
+        c,
+        { name: user.name, email: user.email },
+        "User retrieved successfully",
+      );
     } catch (error) {
       return sendError(c, error);
     }

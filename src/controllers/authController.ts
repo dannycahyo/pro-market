@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { createUserSchema, loginUserSchema } from "../schema/User";
 import { sendError } from "../utils/errorHandler";
+import { sendResponse } from "../utils/responseHandler";
 
 import type { JwtVariables } from "hono/jwt";
 import type { AuthService } from "../services/authService";
@@ -19,7 +20,13 @@ export const authController = (authService: AuthService) => {
         password,
         name,
       });
-      return c.json({ token }, 201);
+
+      return sendResponse(
+        c,
+        { token },
+        "User registered successfully",
+        201,
+      );
     } catch (error) {
       return sendError(c, error);
     }
@@ -30,7 +37,8 @@ export const authController = (authService: AuthService) => {
       const loginData = await c.req.json();
       const { email, password } = loginUserSchema.parse(loginData);
       const token = await authService.login({ email, password });
-      return c.json({ token });
+
+      return sendResponse(c, { token }, "Login successful");
     } catch (error) {
       return sendError(c, error);
     }
@@ -41,14 +49,19 @@ export const authController = (authService: AuthService) => {
       const { sub: userId } = c.get("jwtPayload");
       const user = await authService.userService.getUserById(userId);
       if (!user) return c.json({ error: "User not found" }, 404);
-      return c.json({ name: user.name, email: user.email });
+
+      return sendResponse(
+        c,
+        { name: user.name, email: user.email },
+        "User details retrieved",
+      );
     } catch (error) {
       return sendError(c, error);
     }
   });
 
   router.post("/logout", (c) => {
-    return c.json({ message: "Logged out" });
+    return sendResponse(c, null, "Logged out successfully");
   });
 
   return router;

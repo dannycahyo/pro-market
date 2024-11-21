@@ -3,8 +3,9 @@ import {
   CreateCartItemSchema,
   UpdateCartItemSchema,
 } from "../schema/Cart";
-
 import { sendError } from "../utils/errorHandler";
+import { sendResponse } from "../utils/responseHandler";
+
 import type { CartService } from "../services/cartService";
 import type { JwtVariables } from "hono/jwt";
 import type { JWTPayload } from "../schema/Auth";
@@ -16,7 +17,8 @@ export const cartController = (cartService: CartService) => {
     try {
       const { sub: userId } = c.get("jwtPayload");
       const cart = await cartService.getUserCart(userId);
-      return c.json(cart);
+
+      return sendResponse(c, cart, "Cart retrieved successfully");
     } catch (error) {
       return sendError(c, error);
     }
@@ -31,7 +33,13 @@ export const cartController = (cartService: CartService) => {
         productId: input.productId,
         quantity: input.quantity,
       });
-      return c.json(cartItem, 201);
+
+      return sendResponse(
+        c,
+        cartItem,
+        "Item added to cart successfully",
+        201,
+      );
     } catch (error) {
       return sendError(c, error);
     }
@@ -42,7 +50,8 @@ export const cartController = (cartService: CartService) => {
       const id = c.req.param("id");
       const { sub: userId } = c.get("jwtPayload");
       await cartService.removeItem(id, userId);
-      return c.json({ message: "Item removed" });
+
+      return sendResponse(c, null, "Item removed successfully");
     } catch (error) {
       return sendError(c, error);
     }
@@ -59,7 +68,12 @@ export const cartController = (cartService: CartService) => {
         input,
         userId,
       );
-      return c.json(cartItem);
+
+      return sendResponse(
+        c,
+        cartItem,
+        "Item quantity updated successfully",
+      );
     } catch (error) {
       return sendError(c, error);
     }
